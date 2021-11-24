@@ -1,6 +1,6 @@
 const { ApolloServer, gql } = require("apollo-server");
 const { products } = require("./data");
-const { Products, User } = require("./datasources");
+const { Products } = require("./datasources");
 const { client } = require("./util");
 
 const typeDefs = gql`
@@ -10,15 +10,9 @@ const typeDefs = gql`
     price: Int!
   }
 
-  type User {
-      id: ID!
-      name: String!
-  }
-
   type Query {
     sayHello: String!
     productById(id: ID!): Product
-    userById(id: ID!): User!
   }
 `;
 
@@ -29,24 +23,16 @@ const resolvers = {
     },
 
     productById: (_, args, context) => {
-        return context.dataSources.products.productById(args.id);
-    },
-
-    userById: async (_, args, context) => {
-        const userPromise = await context.dataSources.users.getUserById(args.id);
-        const user = await userPromise.then
+      return context.dataSources.products.getProductById(args.id);
     }
   },
 };
-
-
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   dataSources: () => ({
-      products: new Products(client.db().collection("products")),
-      users: new User(client.db().collection("users"))
+    products: new Products(client.db().collection("products"))
   }),
 });
 
